@@ -54,4 +54,3 @@ sequenceDiagram
     Operations-->>MainProgram: GOBACK
     MainProgram->>User: Continue or exit
 ```
-
