@@ -14,7 +14,7 @@ Remember, it's self-paced so feel free to take a break! ☕️
 
 &copy; 2025 GitHub &bull; [Code of Conduct](https://www.contributor-covenant.org/version/2/1/code_of_conduct/code_of_conduct.md) &bull; [MIT License](https://gh.io/mit)
 
-## Application Sequence Diagram
+## Sequence Diagram: Data Flow of the Accounting System
 
 ```mermaid
 sequenceDiagram
@@ -23,31 +23,35 @@ sequenceDiagram
     participant Operations
     participant DataProgram
 
-    User->>MainProgram: Select operation (1-4)
+    User->>MainProgram: Select operation (View/Credit/Debit)
     MainProgram->>Operations: CALL 'Operations' USING operation-type
-    alt View Balance
+    Operations->>DataProgram: CALL 'DataProgram' USING 'READ', balance (for view/credit/debit)
+    DataProgram-->>Operations: Return current balance
+    Operations->>User: Display balance (for view)
+    
+    alt Credit Operation
+        Operations->>User: Prompt for credit amount
+        User->>Operations: Enter amount
+        Operations->>DataProgram: CALL 'DataProgram' USING 'WRITE', updated-balance
+        DataProgram-->>Operations: Confirm write
+        Operations->>User: Display new balance
+    end
+    
+    alt Debit Operation
+        Operations->>User: Prompt for debit amount
+        User->>Operations: Enter amount
         Operations->>DataProgram: CALL 'DataProgram' USING 'READ', balance
-        DataProgram-->>Operations: Return current balance
-        Operations-->>User: Display current balance
-    else Credit Account
-        User->>Operations: Enter credit amount
-        Operations->>DataProgram: CALL 'DataProgram' USING 'READ', balance
-        DataProgram-->>Operations: Return current balance
-        Operations->>Operations: Add amount to balance
-        Operations->>DataProgram: CALL 'DataProgram' USING 'WRITE', new-balance
-        Operations-->>User: Display new balance
-    else Debit Account
-        User->>Operations: Enter debit amount
-        Operations->>DataProgram: CALL 'DataProgram' USING 'READ', balance
-        DataProgram-->>Operations: Return current balance
-        alt Sufficient funds
-            Operations->>Operations: Subtract amount from balance
-            Operations->>DataProgram: CALL 'DataProgram' USING 'WRITE', new-balance
-            Operations-->>User: Display new balance
-        else Insufficient funds
-            Operations-->>User: Display insufficient funds message
+        DataProgram-->>Operations: Return balance
+        alt Sufficient Funds
+            Operations->>DataProgram: CALL 'DataProgram' USING 'WRITE', updated-balance
+            DataProgram-->>Operations: Confirm write
+            Operations->>User: Display new balance
+        else Insufficient Funds
+            Operations->>User: Display error message
         end
     end
-    MainProgram-->>User: Continue or exit
+    
+    Operations-->>MainProgram: GOBACK
+    MainProgram->>User: Continue or exit
 ```
 
